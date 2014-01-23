@@ -1,6 +1,7 @@
-/**
- * validate.js v0.5.0
- * Ivan Yan
+/*!
+ * validate v1.0.0 by Ivan Yan 2014-01-23
+ * https://github.com/yanxyz/jquery.validate
+ * MIT License
  */
 
 /**
