@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="utf-8" />
+	<title></title>
+	<style>
+		body { margin: 50px 100px; }
+		.kv { margin: 0 0 10px 0; }
+		.kv-error { display: none; color: red;}
+		.error .kv-error { display: block; }
+		.error input { border-color: red;}
+		.valid input { border-color: green;}
+	</style>
+</head>
+<body>
+	<form action="server/reg.php" method="post">
+		<h1>注册</h1>
+		<div class="kv">
+			<label for="email">邮箱</label><br />
+			<input type="email" name="email" id="email" value="" />
+		</div>
+		<div class="kv">
+			<label for="password">密码</label><br />
+			<input type="password" name="password" id="password" value="" />
+		</div>
+		<div class="kv">
+			<label for="confirmPassword">确认密码</label><br />
+			<input type="password" name="confirmPassword" id="confirmPassword" value="" disabled="disabled" />
+		</div>
+		<div class="kv">
+			<input type="checkbox" name="agree" /> 同意用户协议
+		</div>
+		<input type="submit" value="注册" />
+	</form>
+	<script src="http://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+	<script src="../validate.js"></script>
+	<script>
+		$('.kv').append('<span class="kv-error"></span>');
+		function checkEmail(field, v) {
+			// 多个有延时的验证先要消除前面验证的结果
+			// v.removeValidClass(field);
+			$.getJSON('server/reg.php', {email: field.value})
+			.done(function(data) {
+				if (data.available === true) {
+					v.fieldValid(field);
+				} else if (data.available === false) {
+					v.fieldInvalid(field, data.msg);
+				}
+			});
+		}
+
+    function testPass(val) {
+        if (val.length < 6) {
+            msg = "密码不能少于 6 位";
+        } else {
+            msg = true;
+        }
+
+        return msg;
+    }
+
+    function checkPass(field) {
+        return testPass(field.value);
+    }
+
+    function confirmPass(field, v) {
+        var value = field.value,
+            pass = document.getElementById('password'),
+            msg;
+
+        if (value.length === 0) {
+            msg = '请填写确认密码';
+        } else if (value !== pass.value) {
+            msg = '两次密码填写不一致';
+            // 注意不要使用 focus() select()等, 这样会取消错误显示
+            $(field).one('focus', function() {
+                this.value = '';
+            });
+        } else {
+            msg = true;
+        }
+
+        return msg;
+    }
+
+		$('form').validate({
+			debug: true,
+			classPlace: '.kv',
+			errorPlace: '.kv-error',
+			errors: {
+				email: {
+					required: '请填写邮箱',
+					email: '邮箱格式错误',
+					check: checkEmail
+				},
+				password: {
+					required: '请填写密码',
+					check: checkPass
+				},
+				confirmPassword: {
+					required: confirmPass
+				},
+				agree: {
+					required: '必须同意用户协议'
+				}
+			}
+		});
+
+    var validator = $('form').data('validator'),
+        $pass = $('#password'),
+        pass2 = document.getElementById('confirmPassword');
+
+    $pass.on('input propertychange', function() {
+        var result = testPass(this.value);
+
+        if (result === true) {
+            pass2.disabled = false;
+        } else {
+            validator.resetField(pass2);
+            pass2.value = '';
+            pass2.disabled = true;
+        }
+    });
+
+    if (document.documentMode === 9) {
+        $pass.on('keyup', function(e) {
+            switch (e.which) {
+                case 8:
+                case 46:
+                case 17:
+                  $(this).trigger('input');
+            }
+        }).on('cut', function() {
+            var $this = $(this);
+            setTimeout(function() {
+                $this.trigger('input');
+            }, 0);
+        })
+    }
+
+	</script>
+</body>
+</html>

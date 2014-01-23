@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="utf-8" />
+	<title></title>
+	<style>
+		body { margin: 50px 100px; }
+		.kv { margin: 0 0 10px 0; }
+		.kv-error { display: none; color: red;}
+		.error .kv-error { display: block; }
+		.error input { border-color: red;}
+		.valid input { border-color: green;}
+	</style>
+</head>
+<body>
+	<h1>登录</h1>
+	<form action="" method="post">
+		<div class="kv">
+			<label for="email">登录邮箱</label><br />
+			<input type="email" name="email" id="email" value="" />
+		</div>
+		<div class="kv">
+			<label for="password">密码</label><br />
+			<input type="password" name="password" id="password" value="" />
+		</div>
+		<input type="submit" value="登录" />
+	</form>
+	<script src="http://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+	<script src="../validate.js"></script>
+	<script>
+		$('.kv').append('<span class="kv-error"></span>')
+		$('form').validate({
+			debug: true,
+			classPlace: '.kv',
+			errorPlace: '.kv-error',
+			formValid: function() {
+				alert('ok')
+			},
+			errors: {
+				email: {
+					required: '请填写登录邮箱',
+					// email: '邮箱格式错误'
+					email: 1
+				},
+				password: {
+					required: '请输入密码'
+				}
+			}
+		})
+	</script>
+</body>
+</html>
