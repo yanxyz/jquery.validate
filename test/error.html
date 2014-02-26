@@ -10,15 +10,14 @@
 		.error .kv-error { display: block; }
 		.error input { border-color: red;}
 		.valid input { border-color: green;}
-        #clean { line-height: 30px;}
 	</style>
 </head>
 <body>
 	<h1>登录</h1>
-	<form id="form" action="" method="post">
+	<form action="" method="post">
 		<div class="kv">
 			<label for="email">登录邮箱</label><br />
-			<input type="email" name="email" id="email" value="" />
+			<input type="email" name="" id="email" value="" />
 		</div>
 		<div class="kv">
 			<label for="password">密码</label><br />
@@ -26,12 +25,18 @@
 		</div>
 		<input type="submit" value="登录" />
 	</form>
-    <a href="#" id="clean">清除验证消息</a>
+
+  <p>这是一个错误示例。input:email 的 name 与 id 不一致，而 errors 中使用的是 id。
+  这时表单不能提交——以便排查问题。开启调试后在 console 会看到错误提示。
+  </p>
+  <p>除了radio, checkbox 之外表单字段通常 name 与 id 一致，并且与其它表单字段不同。
+  总之， 只能使用 name 而不能使用 id。</p>
+
 	<script src="http://cdn.staticfile.org/jquery/1.9.0/jquery.min.js"></script>
 	<script src="../validate.js"></script>
 	<script>
 		$('.kv').append('<span class="kv-error"></span>')
-		$('#form').validate({
+		$('form').validate({
 			debug: true,
 			classPlace: '.kv',
 			errorPlace: '.kv-error',
@@ -45,18 +50,9 @@
 				},
 				password: {
 					required: '请输入密码'
-				},
-        // 测试不存在项
-        verify: {
-            required: '请填写验证码'
-        }
+				}
 			}
 		})
-
-    var validator = $('#form').data('validator')
-    $('#clean').click(function(e) {
-        validator.resetForm()
-    })
 	</script>
 </body>
 </html>

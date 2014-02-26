@@ -1,0 +1,24 @@
+{
+  "asi"      : true,
+  "boss"     : true,
+  "browser"  : true,
+  "debug"    : true,
+  "devel"    : true,
+  "eqeqeq"   : false,
+  "eqnull"   : true,
+  "expr"     : true,
+  "immed"    : true,
+  "indent"   : 2,
+  "laxbreak" : true,
+  "trailing" : true,
+  "quotmark" : "single",
+  "validthis": true,
+  "undef"    : true,
+  "unused"   : true,
+  "globals"  : {
+    "jQuery": false,
+    "define": false,
+    "requirejs": false,
+    "require": false
+  }
+}

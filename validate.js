@@ -1,5 +1,5 @@
 /*!
- * validate v1.0.0 by Ivan Yan 2014-01-23
+ * validate v1.1.0 by Ivan Yan 2014-02-26
  * https://github.com/yanxyz/jquery.validate
  * MIT License
  */
@@ -24,24 +24,26 @@
     this.options = options
     this.fields = [] // 待验证的表单字段
     this.invalids = {} // 没通过验证的 name
+    this.fatal = false // 插件致命错误
   }
 
+  // 默认选项
   Validator.defaults = {
-    // 默认选项
     debug: false, // 是否调试。不支持 console 的不要开启。
     onblur: true, // 是否在失去焦点时验证
     validClass: 'valid',
     errorClass: 'error',
     formValid: null, // 表单验证通过时回调
+    formSubmit: null, // 自定义表单提交事件处理器
     formInvalid: null // 表单验证没通过时回调
-    // options 必须指定
-    // classPlace: '' //  selector 上面 class 放置位置(closest)
-    // errorPlace: '' // selector 错误消息放置位置 (closest)
+    // 必须指定的 options
+    // classPlace: '.kv' //  selector 上面 class 放置位置(closest)
+    // errorPlace: '.kv-error' // selector 错误消息放置位置 (closest)
     // errors: { // 错误消息，name 指定了要验证的表单项
-    //     email: {
-    //          required: '请填写邮箱'
-    //     },
-    //     name2: {}
+    //   email: {
+    //      required: '请填写邮箱',
+    //      email: '邮箱格式错误'
+    //   }
     // }
   }
 
@@ -119,14 +121,30 @@
       }
     },
     validateField: function(field) {
-      var self = this
-      var type = field.type
+      // var self = this
       var name = field.name
-      var rules = this.options.errors[name]
+      var options = this.options
+      var rules = options.errors[name]
+      var msg = ''
+
+      // 字段的 name 与 id 不同，或者没有 name, 但是 .errors 用的是 id
+      // 跳过这个字段
+      if (!rules) {
+        if (options.debug) {
+          msg = field.tagName.toLowerCase() + '#' + field.id +
+            ' should use name instead of id'
+          this.fatal = true
+          console.error(msg)
+        } else {
+          valid = false
+        }
+        return
+      }
+
       var value = this.fieldValue(field)
       var valid = true
       var $field = $(field)
-      var p, defer, fn, result
+      var p, result
 
       // 确保最先验证 required
       // keys() 不能保证顺序。可在选项中用属性 _rules 指定规则顺序
@@ -162,15 +180,16 @@
             // 对于延时操作可能返回 undefined， 目前是让规则自己处理验证回调
             result = rules[p](field, this)
             if (typeof result === 'string') {
-                this.fieldInvalid(field, result)
-                return
+              this.fieldInvalid(field, result)
+              return
             }
             break
 
           // 规则类型错误
           default:
-            this.invalids[name] = true // 阻止提交表单
-            throw new Error(name + '["' + p + '"] type error')
+            msg = name + '["' + p + '"] type error'
+            this.fatal = true
+            console.error(msg)
         }
       }
 
@@ -209,7 +228,7 @@
       var count = 0
       for (var k in this.invalids) {
         if (this.invalids.hasOwnProperty(k)) {
-           ++count
+          ++count
         }
       }
       return count
@@ -248,16 +267,16 @@
 
         for (name in options.errors) {
           if (options.errors.hasOwnProperty(name)) {
+            // form.elements 不包含 input[type="image"]
+            // http://www.w3.org/TR/html5/forms.html#dom-form-elements
             el = form.elements[name]
             // 忽略不存在的表单字段，方便不定项，比如验证码启用或不启用
             if (el) {
               item = '[name="' + name + '"]'
               names.push(item)
 
-              // radio group
-              // checkbox group same name
-              // 只取第一个
-              // 还有其它 group 的情况吗
+              // 正常情况下只应有 radio group
+              // TODO：处理错误：不同表单字段 id/name 一致
               if (el.length > 1) {
                 fields.push(el[0])
               } else {
@@ -286,27 +305,41 @@
 
       // 始终在表单提交时验证
       $form.on('submit.validator', function(e) {
+
         $fields.each(function() {
           // 没通过验证的表单字段不再验证，避免已验证的来不及再次验证
           if (!v.invalids[this.name]) {
-              v.validateField(this)
+            v.validateField(this)
           }
         })
 
+        // 插件发生致命错误时不提交表单，这时应开启调试排查问题
+        if (v.fatal) {
+          return false
+        }
+
         if (!v.invalidsLen()) {
+          // 表单验证成功回调，回调函数参数 event, validator
           if (typeof settings.formValid === 'function') {
-            // 回调函数内 this 指向 v, 传入 event form 两个参数
-            settings.formValid.call(v, e, form)
+            settings.formValid.call(v, e, v)
           }
-          // 不支持 console 的不要开启调试
+
+          // 使用自定义的表单提交处理程序
+          if (typeof settings.formSubmit === 'function') {
+            e.preventDefault()
+            settings.formSubmit.call(v, form)
+          }
+
+          // 不支持 console 的, 比如 IE<8，不要开启调试
           if (settings.debug) {
             console.log('form valid')
             e.preventDefault()
           }
         } else {
           e.preventDefault()
+          // 表单验证失败回调，回调函数参数 event, validator
           if (typeof settings.formInValid === 'function') {
-            settings.formInvalid.call(v, e, form)
+            settings.formInvalid.call(v, e, v)
           }
           if (settings.debug) {
             console.log('form invalid')
