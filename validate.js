@@ -128,16 +128,11 @@
       var msg = ''
 
       // 字段的 name 与 id 不同，或者没有 name, 但是 .errors 用的是 id
-      // 跳过这个字段
       if (!rules) {
-        if (options.debug) {
-          msg = field.tagName.toLowerCase() + '#' + field.id +
+        this.fatal = true
+        msg = field.tagName.toLowerCase() + '#' + field.id +
             ' should use name instead of id'
-          this.fatal = true
-          console.error(msg)
-        } else {
-          valid = false
-        }
+        console.error(msg)
         return
       }
 
@@ -176,7 +171,7 @@
           // 自定义规则, 与内部规则同名则覆盖内部规则
           // 要求：满足规则时返回 true，不满足规则时返回错误消息 string
           case 'function':
-            valid = false;
+            valid = false
             // 对于延时操作可能返回 undefined， 目前是让规则自己处理验证回调
             result = rules[p](field, this)
             if (typeof result === 'string') {
@@ -187,8 +182,9 @@
 
           // 规则类型错误
           default:
-            msg = name + '["' + p + '"] type error'
+            valid = false
             this.fatal = true
+            msg = name + '["' + p + '"] type error'
             console.error(msg)
         }
       }
@@ -267,8 +263,10 @@
 
         for (name in options.errors) {
           if (options.errors.hasOwnProperty(name)) {
-            // form.elements 不包含 input[type="image"]
+            // .elements 不包含 input[type="image"]
+            // .elemnts[name]， 包括 id 或 name， 但是插件只可用 name
             // http://www.w3.org/TR/html5/forms.html#dom-form-elements
+            // TODO：准确的收集待验证表单字段
             el = form.elements[name]
             // 忽略不存在的表单字段，方便不定项，比如验证码启用或不启用
             if (el) {
@@ -276,7 +274,6 @@
               names.push(item)
 
               // 正常情况下只应有 radio group
-              // TODO：处理错误：不同表单字段 id/name 一致
               if (el.length > 1) {
                 fields.push(el[0])
               } else {
