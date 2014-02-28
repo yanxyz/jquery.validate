@@ -6,11 +6,7 @@ jquery 表单验证插件
 
 ## 使用
 
-阅读 description.md 了解插件原理。
-
-test 目录下是示例。
-
-build 目录下是压缩脚本。需要安装 uglifyjs `npm install -g uglify-js`
+阅读 description.md 及源码了解插件原理。
 
 ```js
 $('form').validate({
@@ -35,9 +31,11 @@ $('form').validate({
   }
 })
 
-建议阅读源码了解运行机制。
-
 ```
+
+test 目录下是示例。
+
+build 目录下是压缩脚本。需要安装 uglifyjs `npm install -g uglify-js`
 
 ## 版权
 
