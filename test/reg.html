@@ -17,18 +17,22 @@
 		<h1>注册</h1>
 		<div class="kv">
 			<label for="email">邮箱</label><br />
-			<input type="email" name="email" id="email" value="" />
+			<input type="email" name="email" id="email" value="" required />
 		</div>
+    <div class="kv">
+      <label for="name">名字（选填）</label><br />
+      <input type="name" name="name" id="name" value="" />
+    </div>
 		<div class="kv">
 			<label for="password">密码</label><br />
-			<input type="password" name="password" id="password" value="" />
+			<input type="password" name="password" id="password" value="" required />
 		</div>
 		<div class="kv">
 			<label for="confirmPassword">确认密码</label><br />
-			<input type="password" name="confirmPassword" id="confirmPassword" value="" />
+			<input type="password" name="confirmPassword" id="confirmPassword" value="" required />
 		</div>
 		<div class="kv">
-			<input type="checkbox" name="agree" /> 同意用户协议
+			<input type="checkbox" name="agree" required /> 同意用户协议
 		</div>
 		<input type="submit" value="注册" />
 	</form>
@@ -51,6 +55,14 @@
 				}
 			});
 		}
+
+    function checkName(field) {
+      var msg = true
+      if ($.trim(field.value).length < 3) {
+        msg = '名字最少 3 个字符'
+      }
+      return msg
+    }
 
 		function checkPass(field) {
 			var val = field.value,
@@ -101,16 +113,19 @@
 					email: '邮箱格式错误',
 					check: checkEmail
 				},
-				// password: {
-				// 	required: '请填写密码',
-				// 	check: checkPass
-				// },
-				// confirmPassword: {
-				// 	required: confirmPass
-				// },
-				// agree: {
-				// 	required: '必须同意用户协议'
-				// }
+        name: {
+          check: checkName
+        },
+				password: {
+					required: '请填写密码',
+					check: checkPass
+				},
+				confirmPassword: {
+					required: confirmPass
+				},
+				agree: {
+					required: '必须同意用户协议'
+				}
 			}
 		});
 

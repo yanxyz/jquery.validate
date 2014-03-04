@@ -11,7 +11,7 @@
  *
  */
 
-;(function (factory) {
+;(function(factory) {
   if (typeof define === 'function' && define.amd) {
     define(['jquery'], factory)
   } else {
@@ -55,7 +55,7 @@
       function check(els) {
         var checked = false
 
-        for (var i=0, len=els.length; i<len; i++) {
+        for (var i = 0, len = els.length; i < len; i++) {
           if (el[i].checked) {
             checked = true
             break
@@ -79,8 +79,19 @@
       }
     },
 
-    email: function(value) {
-      return /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))$/i.test(value)
+    email: function(value, multiple) {
+      var re = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))$/i
+      var result = true
+      if (multiple) {
+        for (var i = 0, len = value.length; i < len; i++) {
+          if (!re.test(value[i])) {
+            return false
+          }
+        }
+      } else {
+        result = re.test(value)
+      }
+      return result
     },
 
     number: function(value) {
@@ -120,50 +131,90 @@
           return $.trim(value)
       }
     },
-    validateField: function(field) {
+    /**
+     * 验证字段
+     * @param  {dom} field 字段
+     * @param  {object} fieldrules 临时验证规则
+     * @return {boolean} 验证结果
+     */
+    validateField: function(field, fieldrules) {
       // var self = this
       var name = field.name
       var options = this.options
-      var rules = options.errors[name]
+      var rules = fieldrules || options.errors[name]
       var msg = ''
 
       // 字段的 name 与 id 不同，或者没有 name, 但是 .errors 用的是 id
       if (!rules) {
         this.fatal = true
         msg = field.tagName.toLowerCase() + '#' + field.id +
-            ' should use name instead of id'
+          ' should use name instead of id'
         console.error(msg)
         return
       }
 
       var value = this.fieldValue(field)
       var valid = true
+      var result = true
       var $field = $(field)
-      var p, result
+      var p
 
       // 确保最先验证 required
-      // keys() 不能保证顺序。可在选项中用属性 _rules 指定规则顺序
-      var arr = rules._rules || $field.data()._rules || []
+      // tip: keys() 不能保证顺序。可在选项中用属性 _rules 指定规则顺序
+      var arr = fieldrules ? [] : (rules._rules || [])
       if (!arr.length) {
         for (p in rules) {
           if (rules.hasOwnProperty(p) && p !== '_rules') {
             p === 'required' ? arr.unshift(p) : arr.push(p)
           }
         }
-        $field.data('_rules', arr)
+        // 临时验证不要缓存
+        if (!fieldrules) {
+          rules._rules = arr
+        }
       }
 
-      for (var i=0, len=arr.length; i<len; i++) {
+      // 将多值字符串转为数组，并去掉各元素的空白
+      function splitMultiple(val) {
+        var parts = val.split(',')
+        for (var i = 0, len = parts.length; i<len; i++) {
+          parts[i] = $.trim(parts[i])
+        }
+        return parts
+      }
+
+      for (var i = 0, len = arr.length; i < len; i++) {
         p = arr[i]
         switch (typeof rules[p]) {
           // 内部规则
           case 'string':
-            // required 需要传递 field 参数
-            if (!Validator.methods[p](value, field)) {
-              // valid = false
+            if (p === 'required') {
+              // required 需要传递 field 参数
+              valid = Validator.methods[p](value, field)
+            } else {
+              // 跳过空值。这时是有效还是无效?
+              if (value === '') {
+                return
+              } else {
+                // 内部规则中 type:email 只适用 required email 两个规则
+                if (field.type === 'email') {
+                  var multiple = $field.prop('multiple')
+                  if (multiple) {
+                    value = splitMultiple(value)
+                    // 是否需要校正呢？
+                    // this.value = value.join()
+                  }
+                  valid = Validator.methods['email'](value, multiple)
+                } else {
+                  valid = Validator.methods[p](value)
+                }
+              }
+            }
+
+            // 没通过则不再验证其它规则
+            if (!valid) {
               this.fieldInvalid(field, rules[p])
-              // 没通过则不再验证其它规则
-              return
+              return false
             }
 
             break
@@ -171,25 +222,26 @@
           // 自定义规则, 与内部规则同名则覆盖内部规则
           // 要求：满足规则时返回 true，不满足规则时返回错误消息 string
           case 'function':
-            valid = false
             // 对于延时操作可能返回 undefined， 目前是让规则自己处理验证回调
             result = rules[p](field, this)
             if (typeof result === 'string') {
               this.fieldInvalid(field, result)
-              return
+              return false
             }
             break
 
           // 规则类型错误
           default:
-            valid = false
             this.fatal = true
             msg = name + '["' + p + '"] type error'
             console.error(msg)
+            return
         }
       }
 
-      valid && this.fieldValid(field)
+      result && this.fieldValid(field)
+      // 到了这步实际是 true
+      return valid
     },
     removeErrorClass: function(field) {
       var options = this.options
@@ -234,8 +286,8 @@
   $.fn.validate = function(options) {
     // 下面选项必须指定
     if (!(typeof options.classPlace === 'string' &&
-        typeof options.errorPlace === 'string' &&
-        $.isPlainObject(options.errors))) {
+      typeof options.errorPlace === 'string' &&
+      $.isPlainObject(options.errors))) {
       throw new Error('lack required options')
     }
 
@@ -244,7 +296,7 @@
       var $form = $(this)
       var v, settings, $fields, selectors
 
-      // 必须是表单
+        // 必须是表单
       if (!$form.is('form')) return
 
       v = $form.data('validator')
