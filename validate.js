@@ -349,7 +349,8 @@
 
       // 聚焦到某个表单字段时取消其错误提示
       $form.on('focusin', selectors, function() {
-        v.removeErrorClass(this)
+        // v.removeErrorClass(this)
+        v.resetField(this)
       })
 
       // 始终在表单提交时验证
